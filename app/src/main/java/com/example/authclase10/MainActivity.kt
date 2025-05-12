@@ -2,14 +2,16 @@ package com.example.authclase10
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -33,8 +35,7 @@ import androidx.navigation.NavController
 import com.example.authclase10.datasource.local.LocalDataSourceProvider
 import com.example.authclase10.viewmodel.AUTH_STATE
 import com.example.authclase10.viewmodel.AuthViewModel
-import com.example.authclase10.viewmodel.IDLE_AUTH_STATE
-import com.example.authclase10.viewmodel.NO_AUTH_STATE
+import com.example.authclase10.viewmodel.ChatViewModel
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "AppVariables")
@@ -43,16 +44,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //Inicialicemos el DataSource
         LocalDataSourceProvider.init(applicationContext.dataStore)
 
         enableEdgeToEdge()
         setContent {
             AuthClase10Theme {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "profile") {
+                NavHost(navController = navController, startDestination = "login") {
                     composable("login") { LoginScreen(navController) }
-                    composable("profile") { ProfileScreen(navController) }
+                    composable("chat") { ChatScreen(navController) }
                 }
             }
         }
@@ -60,15 +60,33 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun ChatScreen(
+    navController: NavController,
+    viewModel: ChatViewModel = viewModel()
+) {
+
+    LaunchedEffect(Unit) {
+        viewModel.getLiveFlowOfProducts()
+    }
+
+    val messages by viewModel.messages.collectAsState()
+
+    LazyColumn {
+        items(messages) { message ->
+            Text(text = message)
+        }
+    }
+}
+
+@Composable
 fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
-    var email by remember { mutableStateOf("drincon@icesi.edu.co") }
-    var password by remember { mutableStateOf("contrasena12345") }
+    var email by remember { mutableStateOf("domic.rincon@gmail.com") }
+    var password by remember { mutableStateOf("alfabeta") }
 
     val authState by viewModel.authState.collectAsState()
 
-    if(authState.state == AUTH_STATE){
-        navController.navigate("profile") {
-            popUpTo(0) { inclusive = true }
+    if (authState.state == AUTH_STATE) {
+        navController.navigate("chat") {
             launchSingleTop = true
         }
     }
@@ -81,39 +99,4 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewMod
             Text(text = "Iniciar sesión")
         }
     }
-}
-
-@Composable
-fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
-
-    val authState by viewModel.authState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.getAuthStatus()
-    }
-
-    when (authState.state) {
-        NO_AUTH_STATE -> {
-            //Navigation a login
-            navController.navigate("login") {
-                popUpTo(0) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-        AUTH_STATE -> {
-            Column {
-                Box(modifier = Modifier.height(200.dp))
-                Button(onClick = {
-                    viewModel.getAllUsers()
-                }) {
-                    Text(text = "Listar usuarios")
-                }
-            }
-        }
-        IDLE_AUTH_STATE -> {
-            CircularProgressIndicator()
-        }
-    }
-
-
 }

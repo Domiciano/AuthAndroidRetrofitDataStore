@@ -50,7 +50,7 @@ android {
 }
 
 dependencies {
-
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.datastore:datastore-preferences:1.1.4");
     implementation("com.google.code.gson:gson:2.12.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")

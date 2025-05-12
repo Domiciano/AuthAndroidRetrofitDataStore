@@ -12,6 +12,7 @@ interface AuthService {
     @GET("/users")
     suspend fun getAllUsers(@Header("Authorization") authorization:String) : UserResponse
 }
+
 data class LoginResponse(
     val data: LoginResponseData
 )
@@ -23,11 +24,9 @@ data class LoginData(
     val email:String,
     val password:String
 )
-
 data class UserResponse(
     val data : List<UserDTO>
 )
-
 data class UserDTO(
     val first_name:String,
     val last_name:String,
